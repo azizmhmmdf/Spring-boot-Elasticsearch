@@ -11,7 +11,7 @@ import java.util.*;
 
 @Repository
 public class CustomerRepository {
-    private JerseyRequest request = new JerseyRequest();
+    private final JerseyRequest request = new JerseyRequest();
 
     public Object getCustomers() throws Exception{
         Map<String, Object> finalResult = new LinkedHashMap<>();
@@ -24,23 +24,17 @@ public class CustomerRepository {
 
         finalResult.put("total_data", response.get("hits").get("total").get("value"));
         finalResult.put("data", customers);
-
         return finalResult;
     }
 
     public Object findById(String paramsId) throws Exception{
         try{
-            String queryTerm = "{\"query\":{\"term\":{\"id\":\""+ paramsId +"\"}}}";
-            JsonNode customer = request.getCustomersWithBody("http://192.168.20.90:9200/customers/_search/", queryTerm);
-
-            if(customer != null){
-                String replaceId = customer.get("hits").get("hits").get(0).get("_id").asText().replace("\"", "");
-                JsonNode findCustomer = request.findById("http://192.168.20.90:9200/customers/_doc/" + replaceId);
-
-                return findCustomer.get("_source");
-            }else{
-                return null;
+            JsonNode customer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsId);
+            if(customer != null) {
+                return customer.get("_source");
             }
+
+            return null;
         }catch (Exception e){
             e.getMessage();
             return null;
@@ -58,9 +52,9 @@ public class CustomerRepository {
             customer.put("email", paramsCustomer.getEmail());
             customer.put("birth_date", paramsCustomer.getBirth_date());
 
-            JsonNode responseCreate = request.create("http://192.168.20.90:9200/customers/_doc/", customer);
+            JsonNode createCustomer = request.create("http://192.168.20.90:9200/customers/_doc/" + customer.get("id"), customer);
 
-            String id = responseCreate.get("_id").asText().replace("\"", "");
+            String id = createCustomer.get("_id").asText().replace("\"", "");
             JsonNode response = request.findById("http://192.168.20.90:9200/customers/_doc/" + id);
 
             return response.get("_source");
@@ -72,9 +66,7 @@ public class CustomerRepository {
 
     public Object update(Customer paramsCustomer, String paramsId) throws Exception{
          try{
-             String queryTerm = "{\"query\":{\"term\":{\"id\":\""+ paramsId +"\"}}}";
-             JsonNode customer = request.getCustomersWithBody("http://192.168.20.90:9200/customers/_search/", queryTerm);
-
+             JsonNode customer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsId);
              if( customer != null){
                  Map<String, Object> bodyMap = new LinkedHashMap<>();
                  Map<String, Object> customerMap = new LinkedHashMap<>();
@@ -88,16 +80,11 @@ public class CustomerRepository {
 
                  bodyMap.put("doc", customerMap);
 
-                 String replaceId = customer.get("hits").get("hits").get(0).get("_id").asText().replace("\"", "");
-                 JsonNode responseUpdate = request.update("http://192.168.20.90:9200/customers/_update/" + replaceId, bodyMap);
-
-                 String id = responseUpdate.get("_id").asText().replace("\"", "");
-                 JsonNode response = request.findById("http://192.168.20.90:9200/customers/_doc/" + id);
-
-                 return response.get("_source");
-             }else{
-                 return null;
+                 JsonNode updateCustomer = request.update("http://192.168.20.90:9200/customers/_update/" + paramsId, bodyMap);
+                 return customer.get("_source");
              }
+
+             return null;
         }catch (Exception e){
             e.getMessage();
             return null;
@@ -106,17 +93,13 @@ public class CustomerRepository {
 
     public Object delete(String paramsId) throws Exception{
         try{
-            String queryTerm = "{\"query\":{\"term\":{\"id\":\""+ paramsId +"\"}}}";
-            JsonNode customer = request.getCustomersWithBody("http://192.168.20.90:9200/customers/_search/", queryTerm);
-
+            JsonNode customer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsId);
             if(customer != null){
-                String replaceId = customer.get("hits").get("hits").get(0).get("_id").asText().replace("\"", "");
-                JsonNode responseDelete = request.delete("http://192.168.20.90:9200/customers/_doc/" + replaceId);
-
+                JsonNode deleteCustomer = request.delete("http://192.168.20.90:9200/customers/_doc/" + paramsId);
                 return "Successfully";
-            }else{
-                return null;
             }
+
+            return null;
         }catch (Exception e){
             e.getMessage();
             return null;
