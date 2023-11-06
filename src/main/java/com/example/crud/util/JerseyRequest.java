@@ -18,7 +18,7 @@ public class JerseyRequest {
     // Client ini adalah instance object untuk berinteraksi dengan resfull
     private Client client = Client.create();
 
-    public JsonNode getCustomers(String url) throws JsonMappingException, JsonProcessingException {
+    public JsonNode get(String url) throws JsonMappingException, JsonProcessingException {
         // ini berfungsi untuk mengarahkan url yang ingin kita tuju
         WebResource webResource = client.resource(url);
 
@@ -44,14 +44,11 @@ public class JerseyRequest {
         return jsonNode;
     }
 
-    public JsonNode getCustomersWithBody(String url, Object body) throws JsonMappingException, JsonProcessingException{
-        WebResource webResource = client.resource("http://192.168.20.90:9200/customers/_search");
+    public JsonNode getWithBody(String url, Object body) throws JsonMappingException, JsonProcessingException{
+        WebResource webResource = client.resource(url);
         ClientResponse response = webResource.type("application/json").post(ClientResponse.class, body);
-//        System.out.println(response);
         String output = response.getEntity(String.class);
-//        System.out.println(output);
         JsonNode  jsonNode = objectMapper.readValue(output, JsonNode.class);
-//        System.out.println(jsonNode);
         return jsonNode;
     }
 
