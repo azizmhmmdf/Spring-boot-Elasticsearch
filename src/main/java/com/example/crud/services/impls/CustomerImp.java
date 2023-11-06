@@ -1,6 +1,7 @@
 package com.example.crud.services.impls;
 
 import com.example.crud.models.Customer;
+import com.example.crud.models.FilterQuery;
 import com.example.crud.models.MessageResponse;
 import com.example.crud.repository.CustomerRepository;
 import com.example.crud.services.CustomerService;
@@ -13,19 +14,16 @@ public class CustomerImp implements CustomerService {
     @Autowired
     CustomerRepository repository;
 
-    private MessageResponse messageResponse = new MessageResponse();
+    private final MessageResponse messageResponse = new MessageResponse();
     @Override
-    public MessageResponse getCustomers() throws Exception {
-        Object customers = repository.getCustomers(); // return map
-        JSONObject customersJson = new JSONObject(customers.toString()); // convert to json
-        int totalData = customersJson.getInt("total_data");
+    public MessageResponse getCustomers(FilterQuery filter) throws Exception {
+        Object customers = repository.getCustomers(filter); // return map
 
-        if(totalData > 0){
+        if(customers != null){
             messageResponse.setData(customers);
             messageResponse.setMessage("Successfully");
             messageResponse.setStatus(true);
         }else{
-            messageResponse.setData(customers);
             messageResponse.setStatus(false);
             messageResponse.setMessage("Not Found");
         }
@@ -36,13 +34,16 @@ public class CustomerImp implements CustomerService {
     public MessageResponse findById(String paramsId) throws Exception {
         Object customer = repository.findById(paramsId);
 
-        if(customer != null){
-            messageResponse.setData(customer);
+        if(customer != null && customer != "Data Not Found"){
             messageResponse.setStatus(true);
             messageResponse.setMessage("Successfully");
-        }else{
-            messageResponse.setMessage("Data Not Found");
+            messageResponse.setData(customer);
+        } else if (customer == "Data Not Found") {
             messageResponse.setStatus(false);
+            messageResponse.setMessage("Data Not Found");
+        } else {
+            messageResponse.setStatus(false);
+            messageResponse.setMessage("Service Unavailable");
         }
 
         return messageResponse;
@@ -51,42 +52,55 @@ public class CustomerImp implements CustomerService {
     @Override
     public MessageResponse create(Customer paramsCustomer) throws Exception {
         Object customer = repository.create(paramsCustomer);
-        if(customer != null){
-            messageResponse.setData(customer);
-            messageResponse.setMessage("Create data Successfully");
+
+        if(customer != null && customer != "Customer already exist"){
             messageResponse.setStatus(true);
-        }else{
+            messageResponse.setMessage("Successfully");
+            messageResponse.setData(customer);
+        } else if (customer == "Customer already exist") {
             messageResponse.setStatus(false);
-            messageResponse.setMessage("failed");
+            messageResponse.setMessage("Customer already exist");
+        } else {
+            messageResponse.setStatus(false);
+            messageResponse.setMessage("Service Unavailable");
         }
 
         return messageResponse;
     }
 
     @Override
-    public MessageResponse update(Customer paramsCustoemer, String paramsId) throws Exception {
-        Object customer = repository.update(paramsCustoemer, paramsId);
+    public MessageResponse update(Customer paramsCustomer) throws Exception {
+        Object customer = repository.update(paramsCustomer);
 
-        if(customer != null){
-            messageResponse.setData(customer);
-            messageResponse.setMessage("Update data Successfully");
+        if(customer != null && customer != "Data Not Found"){
             messageResponse.setStatus(true);
-        }else{
+            messageResponse.setMessage("Successfully");
+            messageResponse.setData(customer);
+        } else if (customer == "Data Not Found") {
             messageResponse.setStatus(false);
-            messageResponse.setMessage("failed");
+            messageResponse.setMessage("Data Not Found");
+        } else {
+            messageResponse.setStatus(false);
+            messageResponse.setMessage("Service Unavailable");
         }
+
+
         return messageResponse;
     }
 
     @Override
     public MessageResponse delete(String paramsId) throws Exception {
         Object response = repository.delete(paramsId);
-        if(response.equals("Successfully")){
-            messageResponse.setMessage("Delete data Successfully");
+
+        if(response == "Successfully"){
             messageResponse.setStatus(true);
-        }else{
-            messageResponse.setMessage("failed");
+            messageResponse.setMessage("Successfully");
+        } else if (response == "Data Not Found") {
             messageResponse.setStatus(false);
+            messageResponse.setMessage("Data Not Found");
+        } else {
+            messageResponse.setStatus(false);
+            messageResponse.setMessage("Service Unavailable");
         }
 
         return messageResponse;

@@ -45,12 +45,13 @@ public class JerseyRequest {
     }
 
     public JsonNode getCustomersWithBody(String url, Object body) throws JsonMappingException, JsonProcessingException{
-        WebResource webResource = client.resource(url);
-        ClientResponse response = webResource.accept(MediaType.APPLICATION_JSON)
-                                             .type(MediaType.APPLICATION_JSON)
-                                             .post(ClientResponse.class, body);
-        String outputString = response.getEntity(String.class);
-        JsonNode jsonNode = objectMapper.readValue(outputString, JsonNode.class);
+        WebResource webResource = client.resource("http://192.168.20.90:9200/customers/_search");
+        ClientResponse response = webResource.type("application/json").post(ClientResponse.class, body);
+//        System.out.println(response);
+        String output = response.getEntity(String.class);
+//        System.out.println(output);
+        JsonNode  jsonNode = objectMapper.readValue(output, JsonNode.class);
+//        System.out.println(jsonNode);
         return jsonNode;
     }
 
