@@ -121,12 +121,12 @@ public class SalesRepository {
     }
 
     public Object create(Sales paramsSales) throws Exception{
-        JsonNode checkSales = request.findById("http://192.168.20.90:9200/sales_v2/_doc/" + paramsSales.getId());
+        String hasheId = hasheId(paramsSales.getId());
+        JsonNode checkSales = request.findById("http://192.168.20.90:9200/sales_v2/_doc/" + hasheId);
 
         if(checkSales != null){
             if(!checkSales.get("found").asBoolean() ){
                 Map<String, Object> sales = new LinkedHashMap<>();
-                String hasheId = hasheId(paramsSales.getId());
 
                 sales.put("id", hasheId);
                 sales.put("product_name", paramsSales.getProduct_name());
