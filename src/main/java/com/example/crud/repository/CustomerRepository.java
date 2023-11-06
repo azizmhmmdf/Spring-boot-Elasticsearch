@@ -48,7 +48,7 @@ public class CustomerRepository {
         Integer from = size * page;
         String body = "{\"from\":" + from + ",\"size\":" + size + ",\"query\":{\"bool\":{\"must\":" + query + "}}}";
 
-        JsonNode queryResult = request.getCustomersWithBody("http://192.168.20.90:9200/customers/_search", body).get("hits");
+        JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/customers/_search", body).get("hits");
 
         List<JsonNode> objList = new ArrayList<JsonNode>();
         if(queryResult != null){
