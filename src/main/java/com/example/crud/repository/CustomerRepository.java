@@ -79,12 +79,12 @@ public class CustomerRepository {
     }
 
     public Object create(Customer paramsCustomer) throws Exception{
-        JsonNode checkCustomer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsCustomer.getId());
+        String hasheId = hasheId(paramsCustomer.getId());
+        JsonNode checkCustomer = request.findById("http://192.168.20.90:9200/customers/_doc/" + hasheId);
 
         if(checkCustomer != null){
             if(!checkCustomer.get("found").asBoolean() ){
                 Map<String, Object> customer = new LinkedHashMap<>();
-                String hasheId = hasheId(paramsCustomer.getId());
 
                 customer.put("id", hasheId);
                 customer.put("username", paramsCustomer.getUsername());
