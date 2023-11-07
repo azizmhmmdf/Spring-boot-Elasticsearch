@@ -11,7 +11,7 @@ import java.util.Map;
 @AllArgsConstructor
 @Data
     public class FilterQuery {
-    private String size;
-    private String page;
+    private Integer size;
+    private Integer page;
     private List<FilterTerms> query;
 }
