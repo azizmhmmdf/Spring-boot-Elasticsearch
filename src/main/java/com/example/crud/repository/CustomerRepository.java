@@ -42,8 +42,8 @@ public class CustomerRepository {
         ObjectMapper mapper = new ObjectMapper();
         String query = mapper.writeValueAsString(listTerms);
 
-        Integer size = Integer.parseInt(filter.getSize());
-        Integer page = Integer.parseInt(filter.getPage()) - 1;
+        Integer size = filter.getSize();
+        Integer page = filter.getPage() - 1;
         Integer from = size * page;
         String body = "{\"from\":" + from + ",\"size\":" + size + ",\"query\":{\"bool\":{\"must\":" + query + "}}}";
 
