@@ -53,8 +53,7 @@ public class CustomerRepository {
         List<JsonNode> objList = new ArrayList<JsonNode>();
         if(queryResult != null){
             for (JsonNode object : queryResult.get("hits")) {
-                ObjectNode objSource = (ObjectNode) object.get("_source");
-                objList.add(objSource);
+                objList.add(object.get("_source"));
             }
             finalResult.put("total_customer_list", objList.size());
             finalResult.put("total_customer_data", queryResult.get("total").get("value").asInt());

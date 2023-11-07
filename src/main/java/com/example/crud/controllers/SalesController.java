@@ -30,8 +30,8 @@ public class SalesController {
             @ApiResponse(responseCode = "404", description = "Sales Not Found",
                     content = @Content)
     })
-    @PostMapping(value = "/read_sales", produces = "application/json")
-    public ResponseEntity<?> index(@RequestBody FilterQuery filter) throws Exception {
+    @PostMapping(value = "/get_sales", produces = "application/json")
+    public ResponseEntity<?> getSales(@RequestBody FilterQuery filter) throws Exception {
         MessageResponse messageResponse = service.getSales(filter);
 
         if(messageResponse.getStatus().equals(true)){
