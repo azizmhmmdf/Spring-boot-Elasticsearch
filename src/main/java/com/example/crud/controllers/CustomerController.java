@@ -30,8 +30,8 @@ public class CustomerController {
             @ApiResponse(responseCode = "404", description = "Customers Not Found",
                     content = @Content)
     })
-    @PostMapping(value = "/read_customers", produces = "application/json")
-    public ResponseEntity<?> index(@RequestBody FilterQuery filter) throws Exception {
+    @PostMapping(value = "/get_customers", produces = "application/json")
+    public ResponseEntity<?> getCustomers(@RequestBody FilterQuery filter) throws Exception {
         MessageResponse messageResponse = service.getCustomers(filter);
 
         if(messageResponse.getStatus().equals(true)){

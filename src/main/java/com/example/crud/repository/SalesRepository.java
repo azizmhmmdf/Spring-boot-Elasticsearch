@@ -53,8 +53,7 @@ public class SalesRepository {
         List<JsonNode> objList = new ArrayList<JsonNode>();
         if(queryResult != null){
             for (JsonNode object : queryResult.get("hits")) {
-                ObjectNode objSource = (ObjectNode) object.get("_source");
-                objList.add(objSource);
+                objList.add(object.get("_source"));
             }
             finalResult.put("total_sales_list", objList.size());
             finalResult.put("total_sales_data", queryResult.get("total").get("value").asInt());
@@ -154,8 +153,7 @@ public class SalesRepository {
     public String formatDate(){
         LocalDateTime dateTime = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-        String formattedDateTime = dateTime.format(formatter);
-        return formattedDateTime;
+        return dateTime.format(formatter);
     }
 
     public Object update(Sales paramsSales) throws Exception{
