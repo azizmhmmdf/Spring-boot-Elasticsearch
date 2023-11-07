@@ -53,9 +53,9 @@ public class SalesController {
             @ApiResponse(responseCode = "503", description = "Service Unavailable",
                     content = @Content)
     })
-    @GetMapping(value = "/get_total_sales_amount", produces = "application/json")
-    public ResponseEntity<?> getTotalSalesAmount() throws Exception{
-        MessageResponse messageResponse = service.getTotalSales();
+    @PostMapping(value = "/get_total_sales_amount", produces = "application/json")
+    public ResponseEntity<?> getTotalSalesAmount(@RequestBody FilterQuery filter) throws Exception{
+        MessageResponse messageResponse = service.getTotalSales(filter);
 
         if(messageResponse.getStatus().equals(true)){
             response = new ResponseEntity<MessageResponse>(messageResponse, HttpStatus.OK);

@@ -32,8 +32,8 @@ public class SalesImpl implements SalesService {
     }
 
     @Override
-    public MessageResponse getTotalSales() throws Exception {
-        Object sales = repository.getTotalSalesAmount();
+    public MessageResponse getTotalSales(FilterQuery filter) throws Exception {
+        Object sales = repository.getTotalSalesAmount(filter);
 
         if(sales != null && sales != "Data Not Found"){
             messageResponse.setData(sales);

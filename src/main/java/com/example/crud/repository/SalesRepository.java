@@ -16,6 +16,7 @@ import java.util.*;
 @Repository
 public class SalesRepository {
     private final JerseyRequest request = new JerseyRequest();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     public Object getSales(FilterQuery filter) throws Exception{
         List<Map<String, Object>> listTerms = new ArrayList<Map<String, Object>>();
@@ -39,14 +40,12 @@ public class SalesRepository {
             }
         }
 
-        ObjectMapper mapper = new ObjectMapper();
         String query = mapper.writeValueAsString(listTerms);
-
         Integer size = filter.getSize();
         Integer page = filter.getPage() - 1;
-        Integer from = size * page;
-        String body = "{\"from\":" + from + ",\"size\":" + size + ",\"query\":{\"bool\":{\"must\":" + query + "}}}";
+        Integer from = (size * page) < 0 ? 0 : (size * page);
 
+        String body = "{\"from\":" + from + ",\"size\":" + size + ",\"query\":{\"bool\":{\"must\":" + query + "}}}";
         JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body).get("hits");
 
         List<JsonNode> objList = new ArrayList<JsonNode>();
@@ -63,12 +62,49 @@ public class SalesRepository {
         return null;
     }
 
-    public Object getTotalSalesAmount() throws Exception{
-        String body = "{\"size\":0,\"aggs\":{\"total_sales\":{\"sum\":{\"field\":\"sales_amount\"}}}}";
+    public Object getTotalSalesAmount(FilterQuery filter) throws Exception{
+        Map<String, Object> termsMap = new LinkedHashMap<>();
+        Map<String, Object> finalResult = new LinkedHashMap<>();
+
+        for (FilterTerms query : filter.getQuery()) {
+            Map<String, Object> terms = new HashMap<>();
+            Map<String, Object> field = new HashMap<>();
+
+            if(!(query.getField().isEmpty() && query.getValue().isEmpty())){
+                field.put(query.getField(), query.getValue());
+                terms.put("match", field);
+                termsMap.put("query", terms);
+            }else{
+                terms.put("match_all",  new HashMap<>());
+                termsMap.put("query", terms);
+            }
+        }
+
+        String matchQuery = mapper.writeValueAsString(termsMap.get("query"));
+        Integer size = filter.getSize();
+        Integer page = filter.getPage() - 1;
+        Integer from = (size * page) < 0 ? 0 : (size * page);
+
+        String body = "{\"size\":"+ size +",\"from\":"+ from +",\"query\":"+ matchQuery +",\"aggs\":{\"total_sales\":{\"sum\":{\"field\":\"sales_amount\"}}}}";
         JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body);
+
+        List<JsonNode> objList = new ArrayList<JsonNode>();
         if (queryResult != null) {
-            if (queryResult.has("aggregations")) {
-                return queryResult.get("aggregations");
+            JsonNode hits = queryResult.get("hits").get("hits");
+            if(hits != null) {
+                for (JsonNode object : hits) {
+                    objList.add(object.get("_source"));
+                }
+            }
+
+            finalResult.put("total_sales_list", objList.size());
+            finalResult.put("total_sales_data", queryResult.get("hits").get("total").get("value").asInt());
+            finalResult.put("sales_list", objList);
+            finalResult.put("aggregations", queryResult.get("aggregations"));
+
+            Object totalSalesData = finalResult.get("total_sales_data");
+            if (totalSalesData instanceof Integer && (Integer) totalSalesData > 0) {
+                return finalResult;
             } else {
                 return "Data not found";
             }
@@ -107,7 +143,6 @@ public class SalesRepository {
 
     public Object findById(String paramsId) throws Exception{
         JsonNode sales = request.findById("http://192.168.20.90:9200/sales_v2/_doc/" + paramsId);
-
         if(sales != null) {
             if(sales.get("found").asBoolean()){
                 return sales.get("_source");

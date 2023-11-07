@@ -44,7 +44,7 @@ public class CustomerRepository {
 
         Integer size = filter.getSize();
         Integer page = filter.getPage() - 1;
-        Integer from = size * page;
+        Integer from = (size * page) < 0 ? 0 : (size * page);
         String body = "{\"from\":" + from + ",\"size\":" + size + ",\"query\":{\"bool\":{\"must\":" + query + "}}}";
 
         JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/customers/_search", body).get("hits");
@@ -65,14 +65,12 @@ public class CustomerRepository {
 
     public Object findById(String paramsId) throws Exception{
         JsonNode customer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsId);
-
         if(customer != null) {
             if(customer.get("found").asBoolean()){
                 return customer.get("_source");
             }
             return "Data Not Found";
         }
-
         return null;
     }
 
