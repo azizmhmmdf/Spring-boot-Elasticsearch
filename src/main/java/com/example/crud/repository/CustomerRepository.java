@@ -7,7 +7,6 @@ import com.example.crud.util.JerseyRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Repository;
 
@@ -94,10 +93,7 @@ public class CustomerRepository {
                 customer.put("birth_date", paramsCustomer.getBirth_date());
 
                 JsonNode createCustomer = request.create("http://192.168.20.90:9200/customers/_doc/" + hasheId, customer);
-
-                String id = createCustomer.get("_id").asText().replace("\"", "");
-                JsonNode response = request.findById("http://192.168.20.90:9200/customers/_doc/" + id);
-
+                JsonNode response = request.findById("http://192.168.20.90:9200/customers/_doc/" + hasheId);
                 return response.get("_source");
             }
             return "Customer already exist";

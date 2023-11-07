@@ -6,7 +6,6 @@ import com.example.crud.models.Sales;
 import com.example.crud.util.JerseyRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Repository;
 
@@ -134,10 +133,7 @@ public class SalesRepository {
                 sales.put("timestamp", formatDate());
 
                 JsonNode createSales = request.create("http://192.168.20.90:9200/sales_v2/_doc/" + hasheId, sales);
-
-                String id = createSales.get("_id").asText().replace("\"", "");
-                JsonNode response = request.findById("http://192.168.20.90:9200/sales_v2/_doc/" + id);
-
+                JsonNode response = request.findById("http://192.168.20.90:9200/sales_v2/_doc/" + hasheId);
                 return response.get("_source");
             }
             return "Sales already exist";
