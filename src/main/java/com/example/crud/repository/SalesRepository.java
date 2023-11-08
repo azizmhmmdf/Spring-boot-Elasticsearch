@@ -6,7 +6,6 @@ import com.example.crud.models.Sales;
 import com.example.crud.util.JerseyRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.core.util.Json;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Repository;
 
@@ -45,7 +44,7 @@ public class SalesRepository {
 
         Integer size = filter.getSize();
         Integer page = filter.getPage() - 1;
-        Integer from = size * page;
+        Integer from = (size * page) < 0 ? 0 : (size * page);
         String body = "{\"from\":" + from + ",\"size\":" + size + ",\"query\":{\"bool\":{\"must\":" + query + "}}}";
 
         JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body).get("hits");
