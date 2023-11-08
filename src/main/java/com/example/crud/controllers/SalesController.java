@@ -124,6 +124,34 @@ public class SalesController {
         return response;
     }
 
+    @Operation(summary = "get max sales per day")
+    @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Successfully",
+        content = { @Content(mediaType = "application/json",
+          schema = @Schema(implementation = MessageResponse.class)) }),
+      @ApiResponse(responseCode = "404", description = "Sales Not Found",
+        content = @Content),
+      @ApiResponse(responseCode = "503", description = "Service Unavailable",
+        content = @Content)
+    })
+    @GetMapping(value = "/max_sales_per_day", produces = "application/json")
+    public ResponseEntity<?> maxSalesPerDay() throws Exception{
+        MessageResponse messageResponse = service.maxSalesPerDay();
+
+        if(messageResponse.getStatus().equals(true)){
+            response = new ResponseEntity<MessageResponse>(messageResponse, HttpStatus.OK);
+        }else{
+            if(messageResponse.getMessage().equals("Data Not Found")){
+                response = new ResponseEntity<MessageResponse>(messageResponse, HttpStatus.NOT_FOUND);
+            }else {
+                response = new ResponseEntity<MessageResponse>(messageResponse, HttpStatus.SERVICE_UNAVAILABLE);
+            }
+        }
+
+        return response;
+    }
+
+
     @Operation(summary = "Get a sales")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully",

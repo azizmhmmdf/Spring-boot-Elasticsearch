@@ -77,7 +77,7 @@ public class CustomerRepository {
     }
 
     public Object create(Customer paramsCustomer) throws Exception{
-        String hasheId = hasheId(paramsCustomer.getId());
+        String hasheId = hasheId(paramsCustomer);
         JsonNode checkCustomer = request.findById("http://192.168.20.90:9200/customers/_doc/" + hasheId);
 
         if(checkCustomer != null){
@@ -101,15 +101,15 @@ public class CustomerRepository {
         return null;
     }
 
-    public String hasheId(String paramsId){
-        String hashedId = DigestUtils.md5Hex(paramsId);
-        return hashedId;
+    public String hasheId(Customer paramsCustomer){
+        String dataTohash = paramsCustomer.getId() + paramsCustomer.getUsername() + paramsCustomer.getGender() + paramsCustomer.getEmail() + paramsCustomer.getFirst_name() + paramsCustomer.getLast_name() + paramsCustomer.getBirth_date();
+        return DigestUtils.md5Hex(dataTohash);
     }
 
     public Object update(Customer paramsCustomer) throws Exception{
-        JsonNode customer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsCustomer.getId());
-        if(customer != null){
-            if( customer.get("found").asBoolean()){
+        JsonNode checkCustomer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsCustomer.getId());
+        if(checkCustomer != null){
+            if( checkCustomer.get("found").asBoolean()){
                 Map<String, Object> bodyMap = new LinkedHashMap<>();
                 Map<String, Object> customerMap = new LinkedHashMap<>();
 
@@ -123,7 +123,8 @@ public class CustomerRepository {
                 bodyMap.put("doc", customerMap);
 
                 JsonNode updateCustomer = request.update("http://192.168.20.90:9200/customers/_update/" + paramsCustomer.getId(), bodyMap);
-                return customer.get("_source");
+                JsonNode getCustomer = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsCustomer.getId());
+                return getCustomer.get("_source");
             }
             return "Data Not Found";
         }
