@@ -8,6 +8,7 @@ import com.example.crud.models.Sales;
 public interface SalesService {
     MessageResponse getSales(FilterQuery filter) throws Exception;
     MessageResponse getTotalSales() throws Exception;
+    MessageResponse maxSalesPerDay() throws Exception;
     MessageResponse getTotalSalesByRegion() throws Exception;
     MessageResponse getSalesChanges() throws Exception;
     MessageResponse findById(String paramsId) throws Exception;

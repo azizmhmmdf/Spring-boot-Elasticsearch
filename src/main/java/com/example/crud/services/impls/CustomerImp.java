@@ -14,9 +14,9 @@ public class CustomerImp implements CustomerService {
     @Autowired
     CustomerRepository repository;
 
-    private final MessageResponse messageResponse = new MessageResponse();
     @Override
     public MessageResponse getCustomers(FilterQuery filter) throws Exception {
+        MessageResponse messageResponse = new MessageResponse();
         Object customers = repository.getCustomers(filter); // return map
 
         if(customers != null){
@@ -32,6 +32,7 @@ public class CustomerImp implements CustomerService {
 
     @Override
     public MessageResponse findById(String paramsId) throws Exception {
+        MessageResponse messageResponse = new MessageResponse();
         Object customer = repository.findById(paramsId);
 
         if(customer != null && customer != "Data Not Found"){
@@ -51,6 +52,7 @@ public class CustomerImp implements CustomerService {
 
     @Override
     public MessageResponse create(Customer paramsCustomer) throws Exception {
+        MessageResponse messageResponse = new MessageResponse();
         Object customer = repository.create(paramsCustomer);
 
         if(customer != null && customer != "Customer already exist"){
@@ -70,6 +72,7 @@ public class CustomerImp implements CustomerService {
 
     @Override
     public MessageResponse update(Customer paramsCustomer) throws Exception {
+        MessageResponse messageResponse = new MessageResponse();
         Object customer = repository.update(paramsCustomer);
 
         if(customer != null && customer != "Data Not Found"){
@@ -90,6 +93,7 @@ public class CustomerImp implements CustomerService {
 
     @Override
     public MessageResponse delete(String paramsId) throws Exception {
+        MessageResponse messageResponse = new MessageResponse();
         Object response = repository.delete(paramsId);
 
         if(response == "Successfully"){

@@ -6,6 +6,7 @@ import com.example.crud.models.Sales;
 import com.example.crud.util.JerseyRequest;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.core.util.Json;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.stereotype.Repository;
 
@@ -65,10 +66,13 @@ public class SalesRepository {
 
     public Object getTotalSalesAmount() throws Exception{
         String body = "{\"size\":0,\"aggs\":{\"total_sales\":{\"sum\":{\"field\":\"sales_amount\"}}}}";
-        JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body);
+        JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body).get("aggregations");
+
         if (queryResult != null) {
-            if (queryResult.has("aggregations")) {
-                return queryResult.get("aggregations");
+            Map<String, Object> finalResult = new LinkedHashMap<>();
+            finalResult.put("total_sales", queryResult.get("total_sales").get("value"));
+            if (finalResult != null) {
+                return finalResult;
             } else {
                 return "Data not found";
             }
@@ -80,12 +84,21 @@ public class SalesRepository {
     public Object getTotalSalesByRegion() throws Exception{
         String body = "{\"size\":0,\"aggs\":{\"sales_by_region\":{\"terms\":{\"field\":\"region\"},\"aggs\":{\"total_sales_per_region\":{\"sum\":{\"field\":\"sales_amount\"}}}}}}";
         JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body);
+
+        JsonNode buckets = queryResult.get("aggregations").get("sales_by_region").get("buckets");
+        List<Map<String, Object>> finalResult = new ArrayList<>();
         if (queryResult != null) {
-            if (queryResult.has("aggregations")) {
-                return queryResult.get("aggregations");
-            } else {
-                return "Data not found";
+            if(buckets != null){
+                for(JsonNode bucket : buckets){
+                    Map<String, Object> resultMap = new LinkedHashMap<>();
+                    resultMap.put("region", bucket.get("key"));
+                    resultMap.put("total_data", bucket.get("doc_count"));
+                    resultMap.put("total_sales", bucket.get("total_sales_per_region").get("value"));
+                    finalResult.add(resultMap);
+                }
+                return finalResult;
             }
+            return "Data Not Found";
         } else {
             return null;
         }
@@ -94,12 +107,51 @@ public class SalesRepository {
     public Object getSalesChanges() throws Exception{
         String body = "{\"size\":0,\"aggs\":{\"sales_per_day\":{\"date_histogram\":{\"field\":\"timestamp\",\"calendar_interval\":\"day\"},\"aggs\":{\"total_sales_per_day\":{\"sum\":{\"field\":\"sales_amount\"}},\"sales_diff\":{\"derivative\":{\"buckets_path\":\"total_sales_per_day\"}}}}}}";
         JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body);
+
+        JsonNode buckets = queryResult.get("aggregations").get("sales_per_day").get("buckets");
+        List<Map<String, Object>> finalResult = new ArrayList<>();
         if (queryResult != null) {
-            if (queryResult.has("aggregations")) {
-                return queryResult.get("aggregations");
-            } else {
-                return "Data not found";
+            if(buckets != null){
+               for(JsonNode bucket : buckets){
+                   Map<String, Object> resultMap = new LinkedHashMap<>();
+                   resultMap.put("timestamp", bucket.get("key_as_string"));
+                   resultMap.put("total_data", bucket.get("doc_count"));
+                   resultMap.put("total_sales_per_day", bucket.get("total_sales_per_day").get("value"));
+
+                   Object setPendapatan = bucket.get("sales_diff") != null ? resultMap.put("pendapatan", bucket.get("sales_diff").get("value")) : resultMap.put("pendapatan", null) ;
+                   finalResult.add(resultMap);
+               }
+               return finalResult;
             }
+            return "Data Not Found";
+        } else {
+            return null;
+        }
+    }
+
+    public Object maxSalesPerDay() throws Exception{
+        String body = "{\"size\":1,\"aggs\":{\"per_day\":{\"date_histogram\":{\"field\":\"timestamp\",\"interval\":\"day\"},\"aggs\":{\"region\":{\"top_hits\":{\"sort\":[{\"sales_amount\":{\"order\":\"desc\"}}],\"size\":1}}}}}}";
+        JsonNode queryResult = request.getWithBody("http://192.168.20.90:9200/sales_v2/_search", body);
+
+        JsonNode buckets = queryResult.get("aggregations").get("per_day").get("buckets");
+        List<Map<String, Object>> finalResult = new ArrayList<>();
+
+        if (queryResult != null) {
+            if(buckets != null){
+                for (JsonNode bucket : buckets) {
+                    JsonNode hits = bucket.get("region").get("hits").get("hits");
+                    for (JsonNode hit : hits) {
+                        Map<String, Object> resultMap = new LinkedHashMap<>();
+                        resultMap.put("product_name", hit.get("_source").get("product_name").asText());
+                        resultMap.put("sales_amount", hit.get("_source").get("sales_amount").asInt());
+                        resultMap.put("region", hit.get("_source").get("region").asText());
+                        resultMap.put("timestamp", hit.get("_source").get("timestamp").asText());
+                        finalResult.add(resultMap);
+                    }
+                }
+                return finalResult;
+            }
+            return "Data Not Found";
         } else {
             return null;
         }
@@ -119,7 +171,7 @@ public class SalesRepository {
     }
 
     public Object create(Sales paramsSales) throws Exception{
-        String hasheId = hasheId(paramsSales.getId());
+        String hasheId = hasheId(paramsSales);
         JsonNode checkSales = request.findById("http://192.168.20.90:9200/sales_v2/_doc/" + hasheId);
 
         if(checkSales != null){
@@ -130,7 +182,8 @@ public class SalesRepository {
                 sales.put("product_name", paramsSales.getProduct_name());
                 sales.put("sales_amount", paramsSales.getSales_amount());
                 sales.put("region", paramsSales.getRegion());
-                sales.put("timestamp", formatDate());
+
+                Object setTimestamp = paramsSales.getTimestamp() == null ? sales.put("timestamp", formatDate()) : sales.put("timestamp", paramsSales.getTimestamp());
 
                 JsonNode createSales = request.create("http://192.168.20.90:9200/sales_v2/_doc/" + hasheId, sales);
                 JsonNode response = request.findById("http://192.168.20.90:9200/sales_v2/_doc/" + hasheId);
@@ -141,8 +194,9 @@ public class SalesRepository {
         return null;
     }
 
-    public String hasheId(String paramsId){
-        String hashedId = DigestUtils.md5Hex(paramsId);
+    public String hasheId(Sales paramsSales){
+        String dataToHash = paramsSales.getId() + paramsSales.getTimestamp();
+        String hashedId = DigestUtils.md5Hex(dataToHash);
         return hashedId;
     }
 
@@ -153,9 +207,9 @@ public class SalesRepository {
     }
 
     public Object update(Sales paramsSales) throws Exception{
-        JsonNode sales = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsSales.getId());
-        if(sales != null){
-            if( sales.get("found").asBoolean()){
+        JsonNode checkSales = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsSales.getId());
+        if(checkSales != null){
+            if( checkSales.get("found").asBoolean()){
                 Map<String, Object> bodyMap = new LinkedHashMap<>();
                 Map<String, Object> salesMap = new LinkedHashMap<>();
 
@@ -167,7 +221,8 @@ public class SalesRepository {
                 bodyMap.put("doc", salesMap);
 
                 JsonNode updateCustomer = request.update("http://192.168.20.90:9200/sales_v2/_update/" + paramsSales.getId(), bodyMap);
-                return sales.get("_source");
+                JsonNode getSales = request.findById("http://192.168.20.90:9200/customers/_doc/" + paramsSales.getId());
+                return getSales.get("_source");
             }
             return "Data Not Found";
         }
