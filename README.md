@@ -5,7 +5,7 @@
  - Pastikan anda menyesuaikan openjdk
 
 ### Langkah 1: Clone Repositori
-  - git clone
+  - git clone https://github.com/azizmuhammadfikhri123/Spring-boot-Elasticsearch.git
   - cd Spring-boot-Elasticsearch
 
 ### Langkah 2: Build image docker
