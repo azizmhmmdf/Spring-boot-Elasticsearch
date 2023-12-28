@@ -8,10 +8,16 @@
   - git clone https://github.com/azizmuhammadfikhri123/Spring-boot-Elasticsearch.git
   - cd Spring-boot-Elasticsearch
 
-### Langkah 2: Build image docker
+### Langkah 2: Build file .jar
+  - Pastikan Maven sudah terinstal di sistem Anda.
+  - Buka terminal dan pindah ke direktori proyek Spring Boot.
+  - Jalankan perintah berikut untuk membersihkan proyek dan membangun file JAR:
+     - mvn clean install
+
+### Langkah 3: Build image docker
   - docker build -t springapi
 
-### Langkah 3: Jalankan container
+### Langkah 4: Jalankan container
   - docker run -p 8080:8080 springapi
 
 ### Aplikasi sekarang dapat diakses melalui http://localhost:8080/
