@@ -1,4 +1,4 @@
-## Run spring using docker
+## Run spring with docker
 
 ### Persyaratan sistem 
  - Pastikan anda memiliki Docker diinstal pada sistem Anda. [Instruksi instalasi Docker](https://docs.docker.com/get-docker/).
